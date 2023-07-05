@@ -1,5 +1,5 @@
 import express from 'express'
-import mongoose from 'mongoose' 
+import {mongoose,Schema} from 'mongoose' 
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import dontenv from 'dotenv'
@@ -12,19 +12,37 @@ import { fileURLToPath } from 'url'
 const app = express()
 app.use(bodyParser.json());
 
+const url = 'mongodb://localhost:27017'
+
+mongoose.connect(url,{
+  useNewUrlParser:true,
+})
+.then(()=>{
+  console.log('connected to database')
+}).catch((err)=>{
+  console.log(err)
+})
+const userSchema = new Schema(
+  {
+      name:String,
+      phone:Number,
+      password:String,
+  },
+);
+const User = mongoose.model('UserInfo',userSchema)
 
 app.post('/api', async (req, res) => {
-    try {
-      const { name, phone, password } = req.body;
-
-
-  
-      res.status(200).json({ message: 'Data received successfully' });
-      console.log(req.body)
-    } catch (error) {
-      console.error('Error receiving data:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+  const { name, phone, password } = req.body;
+  try {
+    await User.create({
+      name,
+      phone,
+      password
+    })
+    res.send('success')
+  }catch(err){
+    res.send(err)
+  }
   });
 
 app.listen(4000,()=>{
